@@ -4,26 +4,29 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.os.AsyncTask;
+
+import com.harrysoft.arduinocontrol.bluetooth.BluetoothNotAvailableException;
+
 import java.io.IOException;
 import java.util.UUID;
 
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+
 public class RobotControl extends AppCompatActivity {
+
+    CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     Button upButton, downButton, leftButton, rightButton, stopButton, disconnectButton;
     String address = null;
-    private ProgressDialog progress;
-    BluetoothAdapter myBluetooth = null;
     BluetoothSocket btSocket = null;
-    private boolean isBtConnected = false;
     static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    ConnectBT mConnectBT = new ConnectBT();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +50,20 @@ public class RobotControl extends AppCompatActivity {
         stopButton.setOnClickListener(v -> sendStopCommand());
         disconnectButton.setOnClickListener(v -> Disconnect());
 
-        mConnectBT.execute();
+        compositeDisposable.add(
+                connectBluetooth(address)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        socket -> {
+                            btSocket = socket;
+                            msg("Connected.");
+                        },
+                        t -> {
+                            msg("Connection Failed. Is it a SPP Bluetooth? Try again.");
+                            t.printStackTrace();
+                            finish();
+                        }));
     }
 
     private void msg(String s) {
@@ -115,43 +131,16 @@ public class RobotControl extends AppCompatActivity {
         }
     }
 
-
-    private class ConnectBT extends AsyncTask<Void, Void, Void> {
-        private boolean ConnectSuccess = true;
-
-        @Override
-        protected void onPreExecute() {
-            progress = ProgressDialog.show(RobotControl.this, "Connecting...", "Please wait!!!");
-        }
-
-        @Override
-        protected Void doInBackground(Void... devices) {
-            try {
-                if (btSocket == null || !isBtConnected) {
-                    myBluetooth = BluetoothAdapter.getDefaultAdapter();
-                    Log.e("gay", "address: " + address);
-                    BluetoothDevice dispositivo = myBluetooth.getRemoteDevice(address);
-                    btSocket = dispositivo.createInsecureRfcommSocketToServiceRecord(myUUID);
-                    BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
-                    btSocket.connect();
-                }
-            } catch (IOException e) {
-                ConnectSuccess = false;
+    private static Single<BluetoothSocket> connectBluetooth(String address) { // todo progress dialog
+        return Single.fromCallable(() -> {
+            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            if (bluetoothAdapter == null) {
+                throw new BluetoothNotAvailableException();
             }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            if (!ConnectSuccess) {
-                msg("Connection Failed. Is it a SPP Bluetooth? Try again.");
-                finish();
-            }
-            else {
-                msg("Connected.");
-                isBtConnected = true;
-            }
-            progress.dismiss();
-        }
+            BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
+            BluetoothSocket btSocket = device.createInsecureRfcommSocketToServiceRecord(myUUID);
+            btSocket.connect();
+            return btSocket;
+        });
     }
 }
