@@ -1,0 +1,20 @@
+package com.harrysoft.arduinocontrol;
+
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        Button selectDeviceButton = findViewById(R.id.selectDeviceButton);
+        selectDeviceButton.setOnClickListener(v -> {
+            startActivity(new Intent(this, DeviceList.class));
+        });
+    }
+}
