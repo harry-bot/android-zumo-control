@@ -2,19 +2,16 @@ package com.harrysoft.arduinocontrol;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 
-import com.harrysoft.arduinocontrol.bluetooth.BluetoothNotAvailableException;
+import com.harrysoft.androidbluetoothserial.BluetoothManager;
+import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice;
 
-import java.io.IOException;
-import java.util.UUID;
+import javax.annotation.Nullable;
 
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
@@ -25,11 +22,14 @@ public class RobotControl extends AppCompatActivity {
 
     Button upButton, downButton, leftButton, rightButton, stopButton, disconnectButton;
     String address = null;
-    BluetoothSocket btSocket = null;
-    static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+    private BluetoothManager bluetoothManager;
+    @Nullable
+    private BluetoothSerialDevice serialDevice;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // todo progress dialog
         Intent newInt = getIntent();
         address = newInt.getStringExtra(DeviceList.EXTRA_ADDRESS);
 
@@ -43,27 +43,44 @@ public class RobotControl extends AppCompatActivity {
         stopButton = findViewById(R.id.stopButton);
         disconnectButton = findViewById(R.id.disconnectButton);
 
-        upButton.setOnClickListener(v -> sendUpCommand());
-        downButton.setOnClickListener(v -> sendDownCommand());
-        leftButton.setOnClickListener(v -> sendLeftCommand());
-        rightButton.setOnClickListener(v -> sendRightCommand());
-        stopButton.setOnClickListener(v -> sendStopCommand());
+        upButton.setOnClickListener(v -> sendCommand("f"));
+        downButton.setOnClickListener(v -> sendCommand("b"));
+        leftButton.setOnClickListener(v -> sendCommand("l"));
+        rightButton.setOnClickListener(v -> sendCommand("r"));
+        stopButton.setOnClickListener(v -> sendCommand("s"));
         disconnectButton.setOnClickListener(v -> Disconnect());
 
+        bluetoothManager = BluetoothManager.getInstance();
+
+        if (bluetoothManager == null) {
+            msg("Bluetooth not available");
+            finish();
+            return;
+        }
+
         compositeDisposable.add(
-                connectBluetooth(address)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        socket -> {
-                            btSocket = socket;
+                bluetoothManager.openSerialDevice(address)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(device -> {
+                            this.serialDevice = device;
+                            openMessageStream();
                             msg("Connected.");
-                        },
-                        t -> {
+                        }, t -> {
                             msg("Connection Failed. Is it a SPP Bluetooth? Try again.");
                             t.printStackTrace();
                             finish();
                         }));
+    }
+
+    private void openMessageStream() {
+        if (serialDevice != null) {
+            compositeDisposable.add(
+                    serialDevice.openMessageStream()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(message -> Log.e("I GOT A MESSAGE!!!", message), Throwable::printStackTrace));
+        }
     }
 
     private void msg(String s) {
@@ -71,76 +88,29 @@ public class RobotControl extends AppCompatActivity {
     }
 
     private void Disconnect() {
-        if (btSocket != null) {
-            try {
-                btSocket.close();
-            } catch (IOException e) {
-                msg("Error");
+        try {
+            if (serialDevice != null) {
+                bluetoothManager.closeDevice(serialDevice);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         finish();
     }
 
-    private void sendUpCommand() {
-        if (btSocket!=null) {
-            try {
-                btSocket.getOutputStream().write("f".getBytes());
-            } catch (IOException e) {
-                msg("Error");
-            }
+    private void sendCommand(String command) {
+        if (serialDevice != null) {
+            compositeDisposable.add(
+                    serialDevice.send(command)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(() -> {}, Throwable::printStackTrace)); // todo handle error
         }
     }
 
-    private void sendDownCommand() {
-        if (btSocket!=null) {
-            try {
-                btSocket.getOutputStream().write("b".getBytes());
-            } catch (IOException e) {
-                msg("Error");
-            }
-        }
-    }
-
-    private void sendLeftCommand() {
-        if (btSocket!=null) {
-            try {
-                btSocket.getOutputStream().write("l".getBytes());
-            } catch (IOException e) {
-                msg("Error");
-            }
-        }
-    }
-
-    private void sendRightCommand() {
-        if (btSocket!=null) {
-            try {
-                btSocket.getOutputStream().write("r".getBytes());
-            } catch (IOException e) {
-                msg("Error");
-            }
-        }
-    }
-
-    private void sendStopCommand() {
-        if (btSocket!=null) {
-            try {
-                btSocket.getOutputStream().write("s".getBytes());
-            } catch (IOException e) {
-                msg("Error");
-            }
-        }
-    }
-
-    private static Single<BluetoothSocket> connectBluetooth(String address) { // todo progress dialog
-        return Single.fromCallable(() -> {
-            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            if (bluetoothAdapter == null) {
-                throw new BluetoothNotAvailableException();
-            }
-            BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
-            BluetoothSocket btSocket = device.createInsecureRfcommSocketToServiceRecord(myUUID);
-            btSocket.connect();
-            return btSocket;
-        });
+    @Override
+    protected void onDestroy() {
+        compositeDisposable.dispose();
+        super.onDestroy();
     }
 }
