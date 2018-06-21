@@ -16,6 +16,9 @@ void setup() {
 
 void loop() {  
   receivedString = readSoftSerial();
+  if (receivedString == "ping") {
+    softSerial.println("pong");
+  }
   if (receivedString.startsWith("set")) {
     ProcessSpeeds(receivedString);
   }
