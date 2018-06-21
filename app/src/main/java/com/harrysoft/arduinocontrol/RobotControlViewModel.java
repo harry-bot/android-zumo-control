@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.harrysoft.androidbluetoothserial.BluetoothManager;
 import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice;
+import com.harrysoft.androidbluetoothserial.SimpleBluetoothDeviceInterface;
 
 import java.text.DecimalFormat;
 
@@ -27,7 +28,7 @@ public class RobotControlViewModel extends AndroidViewModel {
     private BluetoothManager bluetoothManager;
 
     @Nullable
-    private BluetoothSerialDevice serialDevice;
+    private SimpleBluetoothDeviceInterface deviceInterface;
 
     private MutableLiveData<ConnectionStatus> connectionStatusData = new MutableLiveData<>();
     private MutableLiveData<String> deviceNameData = new MutableLiveData<>();
@@ -60,8 +61,10 @@ public class RobotControlViewModel extends AndroidViewModel {
     }
 
     public void updateControls(float xValue, float yValue) {
-        RobotUtils.MotorSpeedConfig speeds = RobotUtils.calculateMotorSpeeds(xValue, yValue);
-        sendMessage("setl" + decimalFormat.format(speeds.leftSpeed) + "lr" + decimalFormat.format(speeds.rightSpeed) + "r");
+        if (deviceInterface != null) {
+            RobotUtils.MotorSpeedConfig speeds = RobotUtils.calculateMotorSpeeds(xValue, yValue);
+            deviceInterface.sendMessage("setl" + decimalFormat.format(speeds.leftSpeed) + "lr" + decimalFormat.format(speeds.rightSpeed) + "r");
+        }
     }
 
     public void connect() {
@@ -83,23 +86,19 @@ public class RobotControlViewModel extends AndroidViewModel {
     public void disconnect() {
         if (connectionAttemptedOrMade) {
             connectionAttemptedOrMade = false;
-            if (serialDevice != null) {
-                bluetoothManager.closeDevice(serialDevice);
+            if (deviceInterface != null) {
+                bluetoothManager.closeDevice(deviceInterface);
             }
-            serialDevice = null;
+            deviceInterface = null;
             connectionStatusData.postValue(ConnectionStatus.DISCONNECTED);
         }
     }
 
     private void onConnected(BluetoothSerialDevice device) {
-        this.serialDevice = device;
-        if (serialDevice != null) {
+        deviceInterface = device.toSimpleDeviceInterface();
+        if (deviceInterface != null) {
             connectionStatusData.postValue(ConnectionStatus.CONNECTED);
-            compositeDisposable.add(
-                    serialDevice.openMessageStream()
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(this::onMessageReceived, Throwable::printStackTrace));
+            deviceInterface.setListeners(this::onMessageSent, this::onMessageReceived, t -> toast(R.string.error));
             toast(R.string.connected);
         } else {
             toast(R.string.connection_failed);
@@ -113,16 +112,6 @@ public class RobotControlViewModel extends AndroidViewModel {
 
     private void onMessageSent(String message) {
         // todo
-    }
-
-    public void sendMessage(String message) {
-        if (serialDevice != null && !TextUtils.isEmpty(message)) {
-            compositeDisposable.add(
-                    serialDevice.send(message)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(() -> onMessageSent(message), t -> toast(R.string.message_send_error)));
-        }
     }
 
     @Override
