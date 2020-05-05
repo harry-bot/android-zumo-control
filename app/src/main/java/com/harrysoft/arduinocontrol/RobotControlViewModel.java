@@ -1,20 +1,22 @@
 package com.harrysoft.arduinocontrol;
 
 import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
-import android.text.TextUtils;
-import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import android.widget.Toast;
 
 import com.harrysoft.androidbluetoothserial.BluetoothManager;
 import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice;
 import com.harrysoft.androidbluetoothserial.SimpleBluetoothDeviceInterface;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -22,13 +24,12 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class RobotControlViewModel extends AndroidViewModel {
-
-    private final DecimalFormat decimalFormat = new DecimalFormat("#");
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private BluetoothManager bluetoothManager;
 
     @Nullable
     private SimpleBluetoothDeviceInterface deviceInterface;
+    private OutputStream deviceOutputStream;
 
     private MutableLiveData<ConnectionStatus> connectionStatusData = new MutableLiveData<>();
     private MutableLiveData<String> deviceNameData = new MutableLiveData<>();
@@ -63,7 +64,13 @@ public class RobotControlViewModel extends AndroidViewModel {
     public void updateControls(float xValue, float yValue) {
         if (deviceInterface != null) {
             RobotUtils.MotorSpeedConfig speeds = RobotUtils.calculateMotorSpeeds(xValue, yValue);
-            deviceInterface.sendMessage("setl" + decimalFormat.format(speeds.leftSpeed) + "lr" + decimalFormat.format(speeds.rightSpeed) + "r");
+            byte left = (byte) speeds.leftSpeed;
+            byte right = (byte) speeds.rightSpeed;
+            try {
+                deviceOutputStream.write(new byte[]{left, right, ';'});
+            } catch (IOException e) {
+                Toast.makeText(getApplication(), "Error sending to device", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -90,11 +97,13 @@ public class RobotControlViewModel extends AndroidViewModel {
                 bluetoothManager.closeDevice(deviceInterface);
             }
             deviceInterface = null;
+            deviceOutputStream = null;
             connectionStatusData.postValue(ConnectionStatus.DISCONNECTED);
         }
     }
 
     private void onConnected(BluetoothSerialDevice device) {
+        deviceOutputStream = device.getOutputStream();
         deviceInterface = device.toSimpleDeviceInterface();
         if (deviceInterface != null) {
             connectionStatusData.postValue(ConnectionStatus.CONNECTED);

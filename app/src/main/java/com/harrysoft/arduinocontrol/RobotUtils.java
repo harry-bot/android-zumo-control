@@ -1,7 +1,6 @@
 package com.harrysoft.arduinocontrol;
 
 public class RobotUtils {
-
     public static MotorSpeedConfig calculateMotorSpeeds(float x, float y) {
         float lBasedOnY = y * -100;
         float rBasedOnY = y * -100;
@@ -40,5 +39,4 @@ public class RobotUtils {
             this.rightSpeed = rightSpeed;
         }
     }
-
 }

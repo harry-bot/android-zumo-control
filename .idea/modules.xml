@@ -3,7 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ArduinoControl.iml" filepath="$PROJECT_DIR$/ArduinoControl.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android-zumo-control.iml" filepath="$PROJECT_DIR$/android-zumo-control.iml" group="android-zumo-control" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="android-zumo-control/app" />
     </modules>
   </component>
 </project>

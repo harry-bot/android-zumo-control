@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Arduino Control</string>
+    <string name="app_name">Zumo Control</string>
     <string name="robot_control">Robot Control</string>
     <string name="no_bluetooth">Bluetooth not available.</string>
     <string name="paired_devices">Paired devices:</string>
