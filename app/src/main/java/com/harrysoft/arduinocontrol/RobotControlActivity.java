@@ -1,13 +1,14 @@
 package com.harrysoft.arduinocontrol;
 
-import androidx.lifecycle.ViewModelProviders;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProviders;
+
+import com.harrysoft.arduinocontrol.robot.RobotInterface;
 import com.harrysoft.joystickview.JoystickView;
 
 public class RobotControlActivity extends AppCompatActivity {
@@ -30,7 +31,7 @@ public class RobotControlActivity extends AppCompatActivity {
         // Setup ViewModel
         viewModel = ViewModelProviders.of(this).get(RobotControlViewModel.class);
 
-        if (!viewModel.setupViewModel(getIntent().getStringExtra("device_name"), getIntent().getStringExtra("device_mac"))) {
+        if (!viewModel.setupViewModel(getIntent().getStringExtra("device_name"), (RobotInterface.Protocol) getIntent().getSerializableExtra("device_protocol"), getIntent().getStringExtra("device_address"))) {
             finish();
             return;
         }

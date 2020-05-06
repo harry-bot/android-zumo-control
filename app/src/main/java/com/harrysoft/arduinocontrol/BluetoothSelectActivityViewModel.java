@@ -1,19 +1,19 @@
 package com.harrysoft.arduinocontrol;
 
 import android.app.Application;
+import android.bluetooth.BluetoothDevice;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import android.bluetooth.BluetoothDevice;
-import android.widget.Toast;
 
 import com.harrysoft.androidbluetoothserial.BluetoothManager;
 
 import java.util.List;
 
-public class MainActivityViewModel extends AndroidViewModel {
+public class BluetoothSelectActivityViewModel extends AndroidViewModel {
 
     private BluetoothManager bluetoothManager;
 
@@ -21,7 +21,7 @@ public class MainActivityViewModel extends AndroidViewModel {
 
     private boolean viewModelSetup = false;
 
-    public MainActivityViewModel(@NonNull Application application) {
+    public BluetoothSelectActivityViewModel(@NonNull Application application) {
         super(application);
     }
 

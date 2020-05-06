@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">Zumo Control</string>
+    <string name="tcpip">TCPIP Control</string>
+    <string name="bluetooth">Bluetooth Control</string>
+    <string name="start">Start</string>
     <string name="robot_control">Robot Control</string>
     <string name="no_bluetooth">Bluetooth not available.</string>
     <string name="paired_devices">Paired devices:</string>
@@ -15,7 +18,6 @@
     <string name="connected">Connected</string>
     <string name="disconnect">Disconnect</string>
     <string name="connection_failed">Connection Failed.</string>
-    <string name="bluetooth_unavailable">Connection Failed.</string>
     <string name="message_send_error">Error sending message!</string>
     <string name="error">An Error Occurred.</string>
     <string name="you_sent">You</string>

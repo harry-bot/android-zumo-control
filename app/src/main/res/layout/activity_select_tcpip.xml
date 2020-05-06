@@ -3,16 +3,16 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/tcpip_control_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/tcpip" />
+    <EditText
+        android:text="172.19.9.14:8000"
+        android:id="@+id/tcpip_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/bluetooth_control_button"
+        android:id="@+id/start_control_tcpip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/bluetooth" />
+        android:text="@string/start" />
 
 </LinearLayout>
