@@ -16,9 +16,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".TcpipSelectActivity" />
+        <activity android:name=".NetworkSelectActivity" />
         <activity android:name=".BluetoothSelectActivity" />
         <activity android:name=".RobotControlActivity" />
     </application>
-
 </manifest>

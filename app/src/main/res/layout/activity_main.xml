@@ -7,12 +7,12 @@
         android:id="@+id/tcpip_control_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/tcpip" />
+        android:text="@string/network_control" />
 
     <Button
         android:id="@+id/bluetooth_control_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/bluetooth" />
+        android:text="@string/bluetooth_control" />
 
 </LinearLayout>

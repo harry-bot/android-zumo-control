@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">Zumo Control</string>
-    <string name="tcpip">TCPIP Control</string>
-    <string name="bluetooth">Bluetooth Control</string>
-    <string name="start">Start</string>
+    <string name="network_control">Network Control</string>
+    <string name="bluetooth_control">Bluetooth Control</string>
+    <string name="start_tcp">Start TCP</string>
+    <string name="start_udp">Start UDP</string>
     <string name="robot_control">Robot Control</string>
     <string name="no_bluetooth">Bluetooth not available.</string>
     <string name="paired_devices">Paired devices:</string>

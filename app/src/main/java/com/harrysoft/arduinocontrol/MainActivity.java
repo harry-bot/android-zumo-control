@@ -11,12 +11,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
 
         findViewById(R.id.tcpip_control_button)
-                .setOnClickListener((e) -> startActivity(new Intent(this, TcpipSelectActivity.class)));
+                .setOnClickListener((e) -> startActivity(new Intent(this, NetworkSelectActivity.class)));
 
         findViewById(R.id.bluetooth_control_button)
                 .setOnClickListener((e) -> startActivity(new Intent(this, BluetoothSelectActivity.class)));

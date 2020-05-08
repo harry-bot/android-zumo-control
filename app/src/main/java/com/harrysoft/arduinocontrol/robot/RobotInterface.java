@@ -9,6 +9,7 @@ public interface RobotInterface {
 
     static enum Protocol {
         TCPIP,
+        UDPIP,
         BLUETOOTH
     }
 
@@ -16,6 +17,8 @@ public interface RobotInterface {
         switch (protocol) {
             case TCPIP:
                 return new TcpipRobotInterface(address);
+            case UDPIP:
+                return new UdpipRobotInterface(address);
             case BLUETOOTH:
                 return new BluetoothRobotInterface(address);
         }

@@ -25,7 +25,7 @@ public class TcpipRobotInterface implements RobotInterface {
     @Override
     public Completable connect() {
         return Completable.fromAction(() -> {
-            URI uri = new URI("http://" + address);
+            URI uri = new URI("tcp://" + address);
             socket = new Socket(uri.getHost(), uri.getPort());
             outputStream = socket.getOutputStream();
         });
@@ -34,7 +34,7 @@ public class TcpipRobotInterface implements RobotInterface {
     @Override
     public void setMotorSpeeds(float leftMotorSpeed, float rightMotorSpeed) throws IOException {
         if (outputStream == null) throw new IllegalStateException();
-        // TODO this is lazy
+        // TODO this is lazy. Synchronize this, not on main thread.
         Completable.fromAction(() -> outputStream.write(new byte[]{(byte) leftMotorSpeed, (byte) rightMotorSpeed, ';'}))
                 .subscribeOn(Schedulers.io())
                 .blockingAwait();
@@ -46,6 +46,5 @@ public class TcpipRobotInterface implements RobotInterface {
             outputStream.close();
             outputStream = null;
         }
-
     }
 }

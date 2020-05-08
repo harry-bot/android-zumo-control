@@ -32,6 +32,9 @@ public class BluetoothSelectActivity extends AppCompatActivity {
         // Setup activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_bluetooth);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         // Setup ViewModel
         viewModel = ViewModelProviders.of(this).get(BluetoothSelectActivityViewModel.class);
